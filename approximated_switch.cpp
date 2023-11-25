@@ -12,16 +12,9 @@ int main(int argc, char *argv[])
     }
 
     int in_1 = std::stoi(argv[1]);
-    int in_2 = std::stoi(argv[2]);
     // printf("Argument %d: %d\n", in_1, in_2);
-    int GPIO_26 = 26;    // simulate laser phsical output
-    pinMode(GPIO_26, OUTPUT);
-
-    digitalWrite(GPIO_26, in_1);
-    delay(200);
-    digitalWrite(GPIO_26, in_2);
-
+    int GPIO_1 = 1;    // simulate laser phsical output
+    pinMode(1, OUTPUT);
+    digitalWrite(GPIO_1, in_1);
     return 0;
 }
-
-

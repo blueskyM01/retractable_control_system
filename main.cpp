@@ -5,6 +5,10 @@ int tcp_server_heart_beat = 0;
 int tcp_client_heart_beat = 0; 
 int auto_manual_switch_flag = 0; // 0: auto; 1:manual
 int PLC_retractable_order = 0;    // 0: extent, 1: retract
+int reset_action_flag = 0; // reset retractable box motor flag
+int total_steps = 0;  // 点击在整个伸出、或者缩回运动的步数。
+ntu_raspberry4B retractable_box;
+
 
 std::string ip = "10.87.131.50";
 int port = 2410;
@@ -12,104 +16,90 @@ int iReadCount = 0;
 
 int auto_manual_switch_flag_previous = 0;
 int auto_manual_switch_flag_current = 0;
+int PLC_retractable_order_previous = 0;
+int PLC_retractable_order_current = 0;
 
-int retractable_box()
+int work_signal()
 {
-  wiringPiSetup();
-  ntu_raspberry4B retractable_box;
 
-  // set gpio mode
-  pinMode(retractable_box.GPIO_25, INPUT);
-  pinMode(retractable_box.GPIO_27, OUTPUT);
-  pinMode(retractable_box.GPIO_28, OUTPUT);
-  pinMode(retractable_box.GPIO_29, OUTPUT);
-
-  // init gpio, motor enable
-  std::cout << "tcp data length: " << iReadCount << std::endl;
-  retractable_box.init();
-
-  // -----------------------        reset retract system motion        -----------------------
-  int* err = retractable_box.reset_action();
-  int reset_flag = *(err+0); // 0: with reset; 1: without reset
-  int total_steps = *(err+1);
-  printf("Total steps: %d. \n", total_steps);
-  if(reset_flag == 0)
-  {
-    printf("Start extent motion after reset retract system motion: \n");
-    retractable_box.retractable_action(total_steps, 100, retractable_box.extent_direction_flag);  //  due to the sensor was retract after reset retract system motion, 
-                                                                  //  it is need to extent.
-  }
-  // -----------------------        reset retract system motion        -----------------------
-
-  printf("system init successfully! \n");
   while(1)
   {
-    
-    // std::cout << "tcp data length: " << iReadCount << std::endl;
-    // std::cout << "auto_manual_switch_flag_previous: " << auto_manual_switch_flag_previous << "  auto_manual_switch_flag_current: " << auto_manual_switch_flag_current << std::endl;
-    // std::cout << "PLC_retractable_order: " << PLC_retractable_order << std::endl;
-    
-
-    auto_manual_switch_flag_previous = auto_manual_switch_flag_current;
-    auto_manual_switch_flag_current = auto_manual_switch_flag;
-
-
-
-    
-    // from auto mode to manual mode
-    if(auto_manual_switch_flag_previous == 0 && auto_manual_switch_flag_current == 1) // enter maunal mode
+    retractable_box.is_detect_reset_retractable_system_signal();
+    if(retractable_box.actived_counter == 4) // if detect reset action signal
     {
-      retractable_box.plc_retractable_control(total_steps, PLC_retractable_order);
+      if(retractable_box.read_approximated_switch() != retractable_box.sensors_retract_limint_signal)
+      {
+        reset_action_flag = 1;
+        retractable_box.actived_counter = 0;
+      }
+      else
+      {
+        retractable_box.actived_counter = 0;
+        printf("*********------Sensor in extented stage, can't enter reset system mode!------ \n*********");
+      }
     }
-
-    // if(auto_manual_switch_flag_previous == 1 && auto_manual_switch_flag_current == 0) // enter auto mode
-    // {
-
-    // }
   }
-
-
-  retractable_box.complete_state();
-
-  // int counter = 0;
-
-  // for(;;)
-  // {
-  //   // repetitive retract
-  //   if(counter % 2 == 0)
-  //   {
-  //     digitalWrite(GPIO_26, LOW) ; 
-  //   }
-  //   else
-  //   {
-  //     digitalWrite(GPIO_26, HIGH) ;
-  //   }
-    
-  //   // get retractable signal
-  //   read_25 = digitalRead(25) ; 
-  //   previous_laser_state = current_laser_state;
-  //   current_laser_state = read_25;
-    
-    
-
-  //   if(read_25 == retractable_flag)  // if detect retract
-  //   {
-  //     retractable_action(0.05, 200);
-      
-  //   }
-  //   else
-  //   {
-  //     extent_action(0.05, 200);
-  //   }
-
-  //   delay(500);
-
-  //   counter ++;
-    
-  //   printf("Num: %d, GPIO口 %d 处于低电平状态\n", counter, read_25);
-  // }
   return 0 ;
 }
+
+
+int motor_motion()
+{
+  total_steps = retractable_box.get_move_steps_from_txt_file();
+  printf("&&&&&&&&&&&&&&&&&&    memory total_steps:%d    &&&&&&&&&&&&&&&&&&", total_steps);
+  while(1)
+  {
+    if(auto_manual_switch_flag == 1)
+    {
+      if(reset_action_flag == 1)
+      {
+        int* err = retractable_box.reset_action();
+        total_steps = *(err+1);
+        reset_action_flag = 0;
+        std::cout << "@@@@@@@@@@    reset total steps to " << total_steps << "!    @@@@@@@@@@" << std::endl;
+
+        printf("Start extent motion after reset retract system motion: \n");
+        retractable_box.retractable_action(total_steps, 100, retractable_box.extent_direction_flag);  //  due to the sensor was retract after reset retract system motion, 
+                                                                    //  it is need to extent.
+        // retractable_box.complete_state();
+      }
+    }
+
+
+    
+
+    if(auto_manual_switch_flag == 1)  // manual mode
+    {
+      PLC_retractable_order_previous = PLC_retractable_order_current;
+      PLC_retractable_order_current = PLC_retractable_order;
+      if(PLC_retractable_order_previous == 0 && PLC_retractable_order_current == 1)
+      {
+        retractable_box.retractable_action(total_steps, 100, retractable_box.retract_direction_flag); // retract
+        // retractable_box.complete_state();
+        std::cout << "@@@@@@@@@@------------------------------------------- @@@@@@@@@@" << std::endl;
+        std::cout << "PLC_retractable_order_previous:" << PLC_retractable_order_previous << "PLC_retractable_order_current:" << PLC_retractable_order_current << std::endl;
+      } 
+      else if(PLC_retractable_order_previous == 1 && PLC_retractable_order_current == 0)
+      {
+        retractable_box.retractable_action(total_steps, 100, retractable_box.extent_direction_flag); // extent
+        // retractable_box.complete_state();
+        std::cout << "***********-------------------------------------------***********" << std::endl;
+      }
+    }
+    else // automation mode
+    {
+      if(retractable_box.read_approximated_switch() != retractable_box.sensors_retract_limint_signal)
+      {
+        retractable_box.auto_retract(total_steps, 1, 0.6);
+      }
+      
+    }
+
+  }
+  return 0;
+}
+
+
 
 int tcp_get_from_plc()
 {
@@ -225,11 +215,14 @@ int tcp_get_from_plc()
 }
 
 
+
+
 int main()
 {
   // 创建两个线程并分别执行 threadFunction1 和 threadFunction2
-  std::thread rb_main(retractable_box);
+  std::thread rb_main(work_signal);
   std::thread rb_tcp(tcp_get_from_plc);
+  std::thread rb_motor(motor_motion);
 
   // 等待两个线程完成
   rb_main.join();
