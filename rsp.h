@@ -30,6 +30,8 @@ class ntu_raspberry4B
     int sensors_retract_limint_signal = 1;  // 传感器完全收回，接近开关给出高电平
     int retract_direction_flag = 0; // 0: clockwise is retract
     int extent_direction_flag = 1; // 1: anti-clockwise is extent
+    int emergence_stop = 0; 
+    int retract_reach_to_limit_signal = 0;
 
 
     int PLC_retractable_order_previous = 0;
@@ -43,7 +45,7 @@ class ntu_raspberry4B
     void init(); // init gpio, motor enable
     void init_move();
     int* reset_action(); // reset retract system motion
-    void retractable_action(int move_steps, double delay_time, int dir); // retract and extent move function
+    int retractable_action(int move_steps, double delay_time, int dir); // retract and extent move function
     int create_memory_file(int steps); // create memory file to store move steps
     int get_move_steps_from_txt_file(); // get move steps from txt file
     int plc_retractable_control(int total_steps, int PLC_retractable_order); // 

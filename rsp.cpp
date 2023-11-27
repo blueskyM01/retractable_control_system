@@ -38,12 +38,15 @@ void ntu_raspberry4B::init_move()
     digitalWrite(GPIO_29, LOW);   // enable
     while(1)
     {
+      // usleep(1000 * 1000);
       if(read_approximated_switch() != sensors_retract_limint_signal)
       {
-        usleep(1 * 1000); // delay 1ms
-        digitalWrite(GPIO_27, HIGH);
-        usleep(1 * 1000); // delay 1ms
-        digitalWrite(GPIO_27, LOW);
+        // usleep(1 * 1000); // delay 1ms
+        // digitalWrite(GPIO_27, HIGH);
+        // usleep(1 * 1000); // delay 1ms
+        // digitalWrite(GPIO_27, LOW);
+        retractable_action(6000, 1, retract_direction_flag);
+        // printf("tttttttttttttttttttttttttttttt \n");
       }
       else
       {
@@ -51,7 +54,6 @@ void ntu_raspberry4B::init_move()
         printf("!!!!    Rectractable system start successfully! Total step: %d      !!!!\n", get_move_steps_from_txt_file());
         break;
       }
-      
     }
   }
   else
@@ -59,6 +61,7 @@ void ntu_raspberry4B::init_move()
     retractable_action(get_move_steps_from_txt_file(), 1, extent_direction_flag);
     printf("!!!!    Rectractable system start successfully!     !!!!\n");
     printf("Total step: %d \n", get_move_steps_from_txt_file());
+    // printf("oooooooooooooooooooooooooooooooooooooooooo \n");
   }
 
 }
@@ -187,7 +190,7 @@ int ntu_raspberry4B::get_move_steps_from_txt_file()
   return move_steps;
 }
 
-void ntu_raspberry4B::retractable_action(int move_steps, double delay_time, int dir)
+int ntu_raspberry4B::retractable_action(int move_steps, double delay_time, int dir)
 {
   int print_counter = 0;
   int test_counter = 0;
@@ -195,7 +198,20 @@ void ntu_raspberry4B::retractable_action(int move_steps, double delay_time, int 
   digitalWrite(GPIO_28, dir);    // dir LOW: clockwise, HIGH: anti-clockwise
   digitalWrite(GPIO_29, LOW);   // enable
   for(int i=0; i<move_steps; i++)
-  {     
+  { 
+    if(dir == retract_direction_flag && read_approximated_switch() == retract_flag)
+    {
+      // printf("dir: %d, read_approximated_switch: %d \n", retract_direction_flag, retract_flag);
+      break;
+    }
+
+    if(dir == extent_direction_flag && emergence_stop == 1)
+    {
+      emergence_stop = 0;
+      printf("Emergence stop!");
+      break;
+    }
+
     if(i < ad)
     {
       usleep(1 * 1000 - ((1-delay_time) * 1000 *(i/ad))); // delay 1ms
@@ -251,6 +267,8 @@ void ntu_raspberry4B::retractable_action(int move_steps, double delay_time, int 
   {
     printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!    One cycle done! Extent move %d steps.    !!!!!!!!!!!!!!!!!!!!!!!!!!! \n", test_counter);
   }
+
+  return test_counter;
   
 }
 

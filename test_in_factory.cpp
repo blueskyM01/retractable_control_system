@@ -16,18 +16,18 @@ int main()
   //   retractable_box.retractable_action(2200, 0.6, retractable_box.extent_direction_flag); // retract_direction_flag, extent_direction_flag
   // }
 
-  // retractable_box.retractable_action(2200, 1, retractable_box.extent_direction_flag); // retract_direction_flag, extent_direction_flag
+  retractable_box.retractable_action(2000, 1, retractable_box.extent_direction_flag); // retract_direction_flag, extent_direction_flag
 
   // // std::cout << "Both threads have finished." << std::endl;
-  while(1)
-  {
-    int read_25 = digitalRead(retractable_box.GPIO_25); 
-    int read_24 = digitalRead(retractable_box.GPIO_24); 
+  // while(1)
+  // {
+  //   int read_25 = digitalRead(retractable_box.GPIO_25); 
+  //   int read_24 = digitalRead(retractable_box.GPIO_24); 
 
-    std::cout << "switch:" << read_24 << std::endl;
-    std::cout << "laser:" << read_25 << std::endl;
-    usleep(1000*1000);
-  }
+  //   std::cout << "switch:" << read_24 << std::endl;
+  //   std::cout << "laser:" << read_25 << std::endl;
+  //   usleep(1000*1000);
+  // }
 
 
   return 0;
