@@ -20,14 +20,14 @@ int main()
     int res;
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(9999);
-    addr.sin_addr.s_addr = inet_addr("10.87.131.50");
+    addr.sin_port = htons(2820);
+    addr.sin_addr.s_addr = inet_addr("192.168.1.151");
 
     int counter = 0;
 
     struct RetractableBox
     {
-        int index; 
+        int heart_beat; // heart beat
         int auto_manual_switch_flag; // 0: auto; 1:manual
         int PLC_retractable_order;    // 0: extent, 1: retract
     };
@@ -84,25 +84,34 @@ int main()
             counter += 1;
             std::cout << counter << std::endl;
 
+            
+
+
+            int iWriteCount = 0;
+            RetractableBox retract_pkg_send_to_plc;
+            retract_pkg_send_to_plc.heart_beat = counter;
+            retract_pkg_send_to_plc.auto_manual_switch_flag = 111;
+            retract_pkg_send_to_plc.PLC_retractable_order = 112;
+            iWriteCount = write(socket_fd, &retract_pkg_send_to_plc, sizeof(retract_pkg_send_to_plc));
+            std::cout << "send to plc:" << std::endl;
+            std::cout << "retract_pkg_send_to_plc.index: " << retract_pkg_send_to_plc.heart_beat << std::endl;
+            std::cout << "retract_pkg_send_to_plc.auto_manual_switch_flag: " << retract_pkg_send_to_plc.auto_manual_switch_flag << std::endl;
+            std::cout << "retract_pkg_send_to_plc.PLC_retractable_order: " << retract_pkg_send_to_plc.PLC_retractable_order << std::endl;
+
             int iReadCount = 0;
             RetractableBox retract_pkg_read_from_plc;
             iReadCount = read(socket_fd, &retract_pkg_read_from_plc, sizeof(retract_pkg_read_from_plc));
             std::cout << "recevie from plc:" << std::endl;
-            std::cout << "retract_pkg_read_from_plc.index: " << retract_pkg_read_from_plc.index << std::endl;
+            std::cout << "retract_pkg_read_from_plc.index: " << retract_pkg_read_from_plc.heart_beat << std::endl;
             std::cout << "retract_pkg_read_from_plc.auto_manual_switch_flag: " << retract_pkg_read_from_plc.auto_manual_switch_flag << std::endl;
             std::cout << "retract_pkg_read_from_plc.PLC_retractable_order: " << retract_pkg_read_from_plc.PLC_retractable_order << std::endl;
 
-
-            // int iWriteCount = 0;
+            // usleep(50*1000);
             // RetractableBox retract_pkg_send_to_plc;
-            // retract_pkg_send_to_plc.index = 110;
+            // retract_pkg_send_to_plc.heart_beat = counter;
             // retract_pkg_send_to_plc.auto_manual_switch_flag = 111;
             // retract_pkg_send_to_plc.PLC_retractable_order = 112;
-            // iWriteCount = write(socket_fd, &retract_pkg_send_to_plc, sizeof(retract_pkg_send_to_plc));
-            // std::cout << "send to plc:" << std::endl;
-            // std::cout << "retract_pkg_send_to_plc.index: " << retract_pkg_send_to_plc.index << std::endl;
-            // std::cout << "retract_pkg_send_to_plc.auto_manual_switch_flag: " << retract_pkg_send_to_plc.auto_manual_switch_flag << std::endl;
-            // std::cout << "retract_pkg_send_to_plc.PLC_retractable_order: " << retract_pkg_send_to_plc.PLC_retractable_order << std::endl;
+            // int iWriteCount = write(socket_fd, &retract_pkg_send_to_plc, sizeof(retract_pkg_send_to_plc));
 
             if(iReadCount <= 0)
             {
