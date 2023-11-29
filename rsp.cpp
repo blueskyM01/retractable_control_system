@@ -158,7 +158,7 @@ int* ntu_raspberry4B::reset_action()
 int ntu_raspberry4B::create_memory_file(int steps)
 {
 
-  std::ofstream myfile("../qcmemory.txt"); 
+  std::ofstream myfile("/home/psa/aQC/retractable_control_system/qcmemory.txt"); 
   if (!myfile.is_open())  
   {  
       std::cout << "未成功打开文件" << std::endl;  

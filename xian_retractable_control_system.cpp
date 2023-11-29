@@ -22,10 +22,6 @@ int iReadCount = 0;
 int laser_signal_previous = 0;
 int laser_signal_current = 0;
 
-int tcp_server_heart_beat_previous = 0;
-int tcp_server_heart_beat_current = 0;
-int tcp_reconnect_counter = 0;
-
 int retractable_motion_flag = 0;
 int retractable_box_status = 0;
 int error_code = 0;
@@ -222,21 +218,6 @@ int tcp_get_from_plc()
             {
                 std::cout << "res = " << res << std::endl;
                 std::cout << "bind 链接失败, 再次尝试请求!" << std::endl;
-                // tcp_server_heart_beat_previous = tcp_server_heart_beat_current;
-                // tcp_server_heart_beat_current = tcp_server_heart_beat;
-                // if(tcp_server_heart_beat_previous == tcp_server_heart_beat_current)
-                // {
-                //   tcp_reconnect_counter ++;
-                // }
-                // else
-                // {
-                //   tcp_reconnect_counter = 0;
-                // }
-
-                // if(tcp_reconnect_counter > 900)
-                // {
-                //   exit(-1);
-                // }
             }
             else
             {
