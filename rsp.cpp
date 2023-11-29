@@ -172,7 +172,7 @@ int ntu_raspberry4B::create_memory_file(int steps)
 
 int ntu_raspberry4B::get_move_steps_from_txt_file()
 {
-  std::ifstream myfile("../qcmemory.txt"); 
+  std::ifstream myfile("/home/psa/aQC/retractable_control_system/qcmemory.txt"); 
   if (!myfile.is_open())  
   {  
       std::cout << "未成功打开文件" << std::endl;  

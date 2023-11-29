@@ -22,9 +22,9 @@ int iReadCount = 0;
 int laser_signal_previous = 0;
 int laser_signal_current = 0;
 
-int retractable_motion_flag_tl = 0;
-int retractable_box_status_tl = 0;
-int error_code_tl = 0;
+int retractable_motion_flag = 0;
+int retractable_box_status = 0;
+int error_code = 0;
 
 int work_signal()
 {
@@ -73,7 +73,7 @@ int motor_motion()
       {
         if(retract_step > 3 * total_steps)
         {
-          error_code_tl = 9001;
+          error_code = 9001;
           break;
         }
         retract_step = retractable_box.retractable_action(total_steps * 2, 0.08, retractable_box.retract_direction_flag);
@@ -172,22 +172,10 @@ int tcp_get_from_plc()
 
   struct RetractableBoxToServer
   {
-      int tcp_retrable_box_heart_beat_tl = 0;    // tcp client heart beat
-      int tcp_retrable_box_heart_beat_tr = 0;
-      int tcp_retrable_box_heart_beat_bl = 0;
-      int tcp_retrable_box_heart_beat_br = 0;
-      int retractable_motion_flag_tl = 0;  // 0: stop 1: in processing
-      int retractable_motion_flag_tr = 0;
-      int retractable_motion_flag_bl = 0;
-      int retractable_motion_flag_br = 0;
-      int retractable_box_status_tl = 0;   // 0: extent, 1: retract
-      int retractable_box_status_tr = 0;
-      int retractable_box_status_bl = 0;
-      int retractable_box_status_br = 0;
-      int error_code_tl = 9000;               // 9001: 
-      int error_code_tr = 9000;
-      int error_code_bl = 9000;
-      int error_code_br = 9000;
+      int tcp_retrable_box_heart_beat = 0;    // tcp client heart beat
+      int retractable_motion_flag = 0;  // 0: stop 1: in processing
+      int retractable_box_status = 0;   // 0: extent, 1: retract
+      int error_code = 9000;               // 9001: approximated switch error
   };
 
   struct ServerToRetractableBox
@@ -251,10 +239,10 @@ int tcp_get_from_plc()
 
         int iWriteCount = 0;
         RetractableBoxToServer send_to_server;
-        send_to_server.tcp_retrable_box_heart_beat_tl = tcp_client_heart_beat;
-        send_to_server.retractable_motion_flag_tl = retractable_motion_flag_tl;
-        send_to_server.retractable_box_status_tl = retractable_box_status_tl;
-        send_to_server.error_code_tl = error_code_tl;
+        send_to_server.tcp_retrable_box_heart_beat = tcp_client_heart_beat;
+        send_to_server.retractable_motion_flag = retractable_motion_flag;
+        send_to_server.retractable_box_status = retractable_box_status;
+        send_to_server.error_code = error_code;
         iWriteCount = write(socket_fd, &send_to_server, sizeof(send_to_server));
 
 
@@ -268,9 +256,9 @@ int tcp_get_from_plc()
         if( tcp_server_heart_beat % 30 == 0)
         {
           printf("tcp_retrable_box_heart_beat_tl: %d \n", tcp_client_heart_beat);
-          printf("retractable_motion_flag_tl: %d \n", retractable_motion_flag_tl);
-          printf("retractable_box_status_tl: %d \n", retractable_box_status_tl);
-          printf("error_code_tl: %d \n", error_code_tl);
+          printf("retractable_motion_flag: %d \n", retractable_motion_flag);
+          printf("retractable_box_status: %d \n", retractable_box_status);
+          printf("error_code: %d \n", error_code);
           printf("tcp_server_heart_beat: %d \n", tcp_server_heart_beat);
           printf("auto_manual_switch_flag: %d \n", auto_manual_switch_flag);
           printf("--------------------------------------------------------------------");
