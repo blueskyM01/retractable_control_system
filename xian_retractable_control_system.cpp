@@ -66,7 +66,7 @@ int motor_motion()
 
   while(1)
   {
-    usleep(30*1000);
+    usleep(10*1000);
     if(auto_manual_switch_flag == 1) // manual mode
     {
       while(retractable_box.read_approximated_switch() == retractable_box.extent_flag )
@@ -112,7 +112,7 @@ int motor_motion()
 
       if(retractable_box.read_approximated_switch() == retractable_box.extent_flag && 
         retractable_box.read_laser_switch() == retractable_box.extent_flag &&
-        retract_step < total_steps*0.7)
+        retract_step < total_steps*0.8)
       {
         motor_motion_retract_counter ++;
         if(motor_motion_retract_counter > 10)
@@ -186,7 +186,7 @@ int tcp_get_from_plc()
 
   while(1)
   {
-    
+    usleep(30*1000); // 30 ms 
     if(socket_fd == -1 && connect_flag == false)
     {
         close(socket_fd);
@@ -230,7 +230,7 @@ int tcp_get_from_plc()
 
     if(connect_flag == true)
     {
-        usleep(30*1000); // 30 ms 
+        
         if(tcp_client_heart_beat > 1000)
         {
           tcp_client_heart_beat = 0;
@@ -240,8 +240,23 @@ int tcp_get_from_plc()
         int iWriteCount = 0;
         RetractableBoxToServer send_to_server;
         send_to_server.tcp_retrable_box_heart_beat = tcp_client_heart_beat;
-        send_to_server.retractable_motion_flag = retractable_motion_flag;
-        send_to_server.retractable_box_status = retractable_box_status;
+        if(retract_move == 1 or extent_move ==1)
+        {
+          send_to_server.retractable_motion_flag = 1;
+        }
+        else
+        {
+          send_to_server.retractable_motion_flag = 0;
+        }
+
+        if(retractable_box.read_approximated_switch() == retractable_box.retract_flag)
+        {
+          send_to_server.retractable_box_status = 1;
+        }
+        else
+        {
+          send_to_server.retractable_box_status = 0;
+        }
         send_to_server.error_code = error_code;
         iWriteCount = write(socket_fd, &send_to_server, sizeof(send_to_server));
 
